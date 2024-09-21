@@ -2,7 +2,9 @@
   import "../app.css";
 </script>
 
-<div class="">
+<div
+  class="w-full flex flex-col justify-center items-center border-red-600 border"
+>
   <nav class="">
     <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
       <div class="relative flex h-16 items-center justify-between">
