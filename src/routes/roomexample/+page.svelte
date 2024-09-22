@@ -2,6 +2,30 @@
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Carousel from "$lib/components/ui/carousel/index.js";
   import Dialog from "$lib/components/ui/dialog/Dialog.svelte";
+  import CalendarIcon from "svelte-radix/Calendar.svelte";
+  import type { DateRange } from "bits-ui";
+  import {
+    today,
+    CalendarDate,
+    DateFormatter,
+    type DateValue,
+    getLocalTimeZone,
+  } from "@internationalized/date";
+  import { cn } from "$lib/utils.js";
+  import { Button } from "$lib/components/ui/button/index.js";
+  import { RangeCalendar } from "$lib/components/ui/range-calendar/index.js";
+  import * as Popover from "$lib/components/ui/popover/index.js";
+
+  const df = new DateFormatter("en-US", {
+    dateStyle: "medium",
+  });
+
+  let value: DateRange | undefined = {
+    start: today("America/New_york").add({ days: 10 }),
+    end: today("America/New_york").add({ days: 20 }),
+  };
+
+  let startValue: DateValue | undefined = undefined;
   let dialog: {
     showModal(): any;
     close(): any;
@@ -34,7 +58,7 @@
 </script>
 
 <div class="w-full min-h-screen flex flex-col justify-start items-center">
-  <div class=" w-11/12 cursor-pointer h-fit">
+  <div class=" flex flex-col-reverse lg:flex-col w-11/12 cursor-pointer h-fit">
     <div class="w-full flex justify-between pt-4 px-4">
       <h3 class=" font-semibold text-3xl">Wake up in the Musee d'Orsay</h3>
       <div class="flex gap-4">
@@ -82,14 +106,22 @@
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="image-grid" on:click={() => dialog.showModal()}>
       <img
-        class="image-grid-col-2 image-grid-row-2 rounded-l-2xl"
+        class="image-grid-col-2 image-grid-row-2 rounded-r-2xl lg:rounded-r-none rounded-l-2xl"
         src="../../1.jpeg"
         alt="clock"
       />
-      <img src="../../2.jpeg" alt="architecture" />
-      <img src="../../3.jpeg" alt="architecture" class="rounded-tr-2xl" />
-      <img src="../../4.jpeg" alt="architecture" />
-      <img src="../../5.jpeg" alt="architecture" class="rounded-br-2xl" />
+      <img class="hidden lg:block" src="../../2.jpeg" alt="architecture" />
+      <img
+        class="hidden lg:block rounded-tr-2xl"
+        src="../../3.jpeg"
+        alt="architecture"
+      />
+      <img class="hidden lg:block" src="../../4.jpeg" alt="architecture" />
+      <img
+        class="hidden lg:block rounded-br-2xl"
+        src="../../5.jpeg"
+        alt="architecture"
+      />
     </div>
   </div>
   <Dialog bind:dialog>
@@ -126,9 +158,80 @@
       </div>
     </div>
   </Dialog>
+  <div class=" flex justify-between pt-2 px-4 w-11/12">
+    <div class="flex flex-col gap-y-2 w-1/2">
+      <div class="text-2xl font-medium">Paris, France</div>
+      <div>2 guests &#183; 1 bedroom &#183; 1 bathroom</div>
+      <div class="flex justify-start items-center">
+        <div class="pr-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            class="size-3"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div>5.0 &#183 <span class="underline">1 review</span></div>
+      </div>
+    </div>
+    <div
+      class="w-1/3 h-64 boxshadow-1 rounded-2xl flex flex-col justify-start gap-2 items-center p-4"
+    >
+      <div>Choose dates</div>
+      <div class="grid gap-2">
+        <Popover.Root openFocus>
+          <Popover.Trigger asChild let:builder>
+            <Button
+              variant="outline"
+              class={cn(
+                "w-[300px] justify-start text-left font-normal",
+                !value && "text-muted-foreground"
+              )}
+              builders={[builder]}
+            >
+              <CalendarIcon class="mr-2 h-4 w-4" />
+              {#if value && value.start}
+                {#if value.end}
+                  {df.format(value.start.toDate(getLocalTimeZone()))} - {df.format(
+                    value.end.toDate(getLocalTimeZone())
+                  )}
+                {:else}
+                  {df.format(value.start.toDate(getLocalTimeZone()))}
+                {/if}
+              {:else if startValue}
+                {df.format(startValue.toDate(getLocalTimeZone()))}
+              {:else}
+                Pick a date
+              {/if}
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content class="w-auto p-0" align="start">
+            <RangeCalendar
+              bind:value
+              bind:startValue
+              placeholder={value?.start}
+              initialFocus
+              numberOfMonths={2}
+            />
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
+  .boxshadow-1 {
+    box-shadow:
+      rgba(0, 0, 0, 0.05) 0px 6px 24px 0px,
+      rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  }
   .image-grid {
     --gap: 16px;
     --num-cols: 4;
